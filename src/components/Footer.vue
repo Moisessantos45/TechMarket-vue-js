@@ -9,10 +9,15 @@
       <a href="#" class="hover:text-gray-400">Contact</a>
     </nav>
     <div class="mt-4">
-      <p class="text-sm">&copy; 2023 TechMarket. All rights reserved.</p>
+      <p class="text-sm">&copy; {{ year }} TechMarket. All rights reserved.</p>
     </div>
   </footer>
 </template>
+
+<script setup lang="ts">
+const date = new Date();
+const year = date.getFullYear();
+</script>
 
 <style scoped>
 footer {
