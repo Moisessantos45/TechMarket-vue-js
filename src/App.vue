@@ -1,3 +1,14 @@
+<template>
+  <Header :products="productListRef" />
+  <main class="w-11/12 mx-auto mt-5">
+    <div class="flex justify-center items-center p-3">
+      <h1 class="text-2xl font-bold uppercase">Welcome to TechMarket</h1>
+    </div>
+    <Cards :products="products" @add-to-cart="addToCart" />
+  </main>
+  <Footer />
+</template>
+
 <script setup lang="ts">
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
@@ -9,7 +20,6 @@ import showToastNotification from "./service/notification";
 
 const products = ref<Product[]>([]);
 const productListRef = ref<ProductCart[]>([]);
-// const productListRef = ref<ProductCart[]>([]);
 
 onMounted(async () => {
   const data: Product[] = await getProducts();
@@ -23,7 +33,7 @@ onMounted(async () => {
   });
 
   products.value = filteredImagesWithQuotes;
-   const productListLocal = localStorage.getItem("productList") || "[]";
+  const productListLocal = localStorage.getItem("productList") || "[]";
   productListRef.value = JSON.parse(productListLocal);
 });
 
@@ -31,7 +41,8 @@ const addToCart = (product: Product) => {
   const existingItem = productListRef.value.find(
     (item) => item.id === product.id
   );
-  if (existingItem) {
+
+  if (existingItem?.id) {
     existingItem.quantity++;
     showToastNotification("Product added to cart", true);
   } else {
@@ -45,17 +56,6 @@ const addToCart = (product: Product) => {
   localStorage.setItem("productList", JSON.stringify(productListRef.value));
 };
 </script>
-
-<template>
-  <Header :products="productListRef" />
-  <main class="w-11/12 mx-auto mt-5">
-    <div class="flex justify-center items-center p-3">
-      <h1 class="text-2xl font-bold uppercase">Welcome to TechMarket</h1>
-    </div>
-    <Cards :products="products" @add-to-cart="addToCart" />
-  </main>
-  <Footer />
-</template>
 
 <style scoped>
 .logo {

@@ -63,14 +63,14 @@
           </button>
         </div>
         <div
-          v-if="products.length === 0"
+          v-if="localProducts.length === 0"
           class="text-center text-gray-600 my-8"
         >
           Your cart is empty
         </div>
         <div v-else>
           <div
-            v-for="item in products"
+            v-for="item in localProducts"
             :key="item.id"
             class="flex items-center justify-between border-b border-gray-200 py-4"
           >
@@ -157,6 +157,7 @@
               <span>${{ totalPrice.toFixed(2) }}</span>
             </div>
             <button
+              @click="Checkout"
               class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300"
             >
               Checkout
@@ -169,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { ProductCart } from "../entitis/entitis";
 import showToastNotification from "../service/notification";
 
@@ -181,6 +182,7 @@ const props = defineProps({
   },
 });
 
+const localProducts = ref<ProductCart[]>([...props.products]);
 const emit = defineEmits(["update:products"]);
 
 const toggleCart = () => {
@@ -188,19 +190,21 @@ const toggleCart = () => {
 };
 
 const removeFromCart = (item: ProductCart) => {
-  const index = props.products.findIndex((cartItem) => cartItem.id === item.id);
+  const index = localProducts.value.findIndex(
+    (cartItem) => cartItem.id === item.id
+  );
   if (index !== -1) {
-    props.products.splice(index, 1);
+    localProducts.value.splice(index, 1);
   }
-  emit("update:products", props.products);
-  localStorage.setItem("productList", JSON.stringify(props.products));
+  emit("update:products", localProducts.value);
+  localStorage.setItem("productList", JSON.stringify(localProducts.value));
   showToastNotification("Product removed from cart", true);
 };
 
 const incrementQuantity = (item: ProductCart) => {
   item.quantity++;
-  localStorage.setItem("productList", JSON.stringify(props.products));
-  emit("update:products", props.products);
+  localStorage.setItem("productList", JSON.stringify(localProducts.value));
+  emit("update:products", localProducts.value);
 };
 
 const decrementQuantity = (item: ProductCart) => {
@@ -209,20 +213,35 @@ const decrementQuantity = (item: ProductCart) => {
   } else {
     removeFromCart(item);
   }
-  localStorage.setItem("productList", JSON.stringify(props.products));
-  emit("update:products", props.products);
+  localStorage.setItem("productList", JSON.stringify(localProducts.value));
+  emit("update:products", localProducts.value);
 };
 
 const cartItemCount = computed(() => {
-  return props.products.reduce((total, item) => total + item.quantity, 0);
+  return localProducts.value.reduce((total, item) => total + item.quantity, 0);
 });
 
 const totalPrice = computed(() => {
-  return props.products.reduce(
+  return localProducts.value.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
 });
+
+const Checkout = () => {
+  localProducts.value = [];
+  localStorage.removeItem("productList");
+  emit("update:products", localProducts.value);
+  showToastNotification("Checkout successful", true);
+};
+
+watch(
+  () => props.products,
+  (newVal) => {
+    localProducts.value = [...newVal];
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <style scoped>
